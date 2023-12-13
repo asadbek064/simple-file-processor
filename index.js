@@ -1,18 +1,18 @@
-"use strict";
+'use strict';
 
-const { EventEmitter } = require("events");
-const fg = require("fast-glob");
-const workerFarm = require("worker-farm");
+const { EventEmitter } = require('events');
+const fg = require('fast-glob');
+const workerFarm = require('worker-farm');
 
 class FileProcessor extends EventEmitter {
   constructor(globPattern, worker, options = {}, globOptions = {}) {
     super();
+
     options = options || {};
-
     const glob = (this.glob = fg.stream(globPattern, globOptions));
-    this.invokeWorker = options.invokeWorker || defaultInvokeWorker;
 
-    const workers = (this.worker = workerFarm(options.worker || {}, worker));
+    this.invokeWorker = options.invokeWorker || defaultInvokeWorker;
+    const workers = (this.workers = workerFarm(options.worker || {}, worker));
 
     // initilize vars to track processing status
     let allQueued = false;
@@ -22,32 +22,25 @@ class FileProcessor extends EventEmitter {
 
     // Checks for completion of processing
     const checkForEnd = () => {
-      if (errorOccured || (allQueued && queuedCount == processedCount)) {
-        // Terminate worker farm if keepAlive option is not set
+      if (errorOccured || (allQueued && queuedCount === processedCount)) {
         if (!options.keepAlive) {
           workerFarm.end(workers);
         }
-
-        // emit end if no error occured
-        if (!errorOccured) {
-          this.emit("end");
-        }
+        if (!errorOccured) this.emit('end');
       }
     };
 
     // Listen for 'data' event emitted by glob stream
-    glob.on("data", (path) => {
+    glob.on('data', (path) => {
       queuedCount++;
-      this.emit("queued", path); // emit queued event with the file path
-
-      // Process the file using the specified function and tracking processing status
+      this.emit('queued', path);
       this.process(path, (err, result) => {
         processedCount++;
         if (err) {
-          errorHappened = true;
-          this.emit("error", err);
+          errorOccured = true;
+          this.emit('error', err);
         } else {
-          this.emit("processed", path, result);
+          this.emit('processed', path, result);
         }
 
         checkForEnd();
@@ -55,9 +48,9 @@ class FileProcessor extends EventEmitter {
     });
 
     // Listen for 'end' event emitted by the glob stream
-    glob.on("end", () => {
-      allQueued = true; // update flag indicating all files have been queued
-      this.emit("allQueued", { queuedCount, processedCount });
+    glob.on('end', () => {
+      allQueued = true;
+      this.emit('allQueued', { queuedCount, processedCount });
       checkForEnd();
     });
   }
@@ -66,7 +59,6 @@ class FileProcessor extends EventEmitter {
   process(path, callback) {
     this.invokeWorker(this.workers, path, callback);
   }
-
   // Method to destroy the FileProcessor instance
   destroy(callback) {
     this.glob.destroy();
@@ -74,10 +66,9 @@ class FileProcessor extends EventEmitter {
   }
 }
 
-
 // Worker invoker
 function defaultInvokeWorker(workers, path, callback) {
   workers(path, callback);
 }
 
-module.exports = FileProcessor
+module.exports = FileProcessor;

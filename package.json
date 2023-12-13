@@ -4,14 +4,23 @@
   "description": "Run parallel tasks on a multiple files",
   "main": "index.js",
   "scripts": {
-    "test": "spire test"
+    "test": "spire test",
+    "lint": "spire lint",
+    "release": "spire release"
   },
   "author": "Asadbek Karimov",
   "license": "MIT",
   "dependencies": {
     "fast-glob": "^3.3.2",
+    "is-ci": "^3.0.1",
     "worker-farm": "^1.7.0"
   },
+  "engines": {
+    "node": ">= 10.18.1"
+  },
+  "files": [
+    "index.js"
+  ],
   "devDependencies": {
     "@researchgate/spire-config": "6.0.2",
     "spire": "3.2.3",
@@ -35,10 +44,5 @@
     "preset": "@researchgate/jest-preset-base",
     "testEnvironment": "node"
   },
-  "engines": {
-    "node": ">= 10.18"
-  },
-  "files": [
-    "index.js"
-  ]
+  "prettier": "@researchgate/prettier-config"
 }
