@@ -1,54 +1,50 @@
-const path = require('path');
-const FileProcessor = require('../FileProcessor');
-const workerPath = require.resolve('./workers/worker');
+const path = require("path");
+const workerPath = require.resolve("./workers/worker");
+const FileProcessor = require("..");
 
-const getFileAbsolutePath = (fileName) => path.join(__dirname, 'example', fileName);
-const txtPattern = getFileAbsolutePath('*.txt');
+const examplePath = (fileName) => path.join(__dirname, "example", fileName);
+const pattern = examplePath("*.txt");
 
-describe('File Processing', () => {
-  let processor;
-
+describe("success", () => {
+  let fileProcessor = null;
   beforeEach(() => {
-    processor = new FileProcessor(txtPattern, workerPath);
+    fileProcessor = new FileProcessor(pattern, workerPath);
   });
 
-  test('Queued files are processed', async () => {
+  test("queued", () => {
     expect.assertions(3);
     const handler = jest.fn();
-    processor.on('queued', handler);
-
-    await new Promise((resolve) => {
-      processor.on('end', () => {
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'));
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('2.txt'));
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'));
+    fileProcessor.on("queued", handler);
+    return new Promise((resolve) => {
+      fileProcessor.on("end", () => {
+        expect(handler).toHaveBeenCalledWith(examplePath("1.txt"));
+        expect(handler).toHaveBeenCalledWith(examplePath("2.txt"));
+        expect(handler).toHaveBeenCalledWith(examplePath("3.txt"));
         resolve();
       });
     });
   });
 
-  test('Processed files emit the correct data', async () => {
+  test("processed", () => {
     expect.assertions(3);
     const handler = jest.fn();
-    processor.on('processed', handler);
-
-    await new Promise((resolve) => {
-      processor.on('end', () => {
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'), 'a');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('2.txt'), 'b');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'), 'c');
+    fileProcessor.on("processed", handler);
+    return new Promise((resolve) => {
+      fileProcessor.on("end", () => {
+        expect(handler).toHaveBeenCalledWith(examplePath("1.txt"), "A");
+        expect(handler).toHaveBeenCalledWith(examplePath("2.txt"), "B");
+        expect(handler).toHaveBeenCalledWith(examplePath("3.txt"), "C");
         resolve();
       });
     });
   });
 
-  test('All queued files emit event with expected data', async () => {
+  test("allQueued", () => {
     expect.assertions(1);
     const handler = jest.fn();
-    processor.on('allQueued', handler);
-
-    await new Promise((resolve) => {
-      processor.on('end', () => {
+    fileProcessor.on("allQueued", handler);
+    return new Promise((resolve) => {
+      fileProcessor.on("end", () => {
         expect(handler).toHaveBeenCalledWith(
           expect.objectContaining({
             queuedCount: 3,
@@ -60,48 +56,47 @@ describe('File Processing', () => {
     });
   });
 
-  test('Destroying the processor', async () => {
-    await new Promise((resolve) => {
-      processor.destroy(resolve);
+  test("destroy", () => {
+    return new Promise((resolve) => {
+      fileProcessor.destroy(resolve);
     });
   });
 
-  test('Processing multiple paths', async () => {
-    processor = new FileProcessor(
-      [getFileAbsolutePath('1.txt'), getFileAbsolutePath('3.txt')],
+  test("multiple paths", () => {
+    fileProcessor = new FileProcessor(
+      [examplePath("1.txt"), examplePath("3.txt")],
       workerPath
     );
 
     expect.assertions(3);
     const handler = jest.fn();
-    processor.on('queued', handler);
-
-    await new Promise((resolve) => {
-      processor.on('end', () => {
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'));
-        expect(handler).not.toHaveBeenCalledWith(getFileAbsolutePath('2.txt'));
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'));
+    fileProcessor.on("queued", handler);
+    return new Promise((resolve) => {
+      fileProcessor.on("end", () => {
+        expect(handler).toHaveBeenCalledWith(examplePath("1.txt"));
+        expect(handler).not.toHaveBeenCalledWith(examplePath("2.txt"));
+        expect(handler).toHaveBeenCalledWith(examplePath("3.txt"));
         resolve();
       });
     });
   });
 
-  describe('Keep alive processing', () => {
-    let fileProcessor;
+  describe("keepAlive", () => {
+    let processor;
 
     beforeEach(() => {
-      fileProcessor = new FileProcessor(getFileAbsolutePath('1.txt'), workerPath, {
+      processor = new FileProcessor(examplePath("1.txt"), workerPath, {
         keepAlive: true,
       });
     });
 
-    test('Allows processing more files after initial pass', async () => {
+    test("allows to process more files after initial pass", () => {
       expect.assertions(2);
-      await new Promise((resolve) => {
-        fileProcessor.on('end', () => {
-          fileProcessor.process(getFileAbsolutePath('2.txt'), (error, result) => {
+      return new Promise((resolve) => {
+        processor.on("end", () => {
+          processor.process(examplePath("2.txt"), (error, result) => {
             expect(error).toBe(null);
-            expect(result).toEqual('b');
+            expect(result).toEqual("B");
             resolve();
           });
         });
@@ -110,15 +105,15 @@ describe('File Processing', () => {
 
     afterEach(() => {
       return new Promise((resolve) => {
-        fileProcessor.destroy(resolve);
+        processor.destroy(resolve);
       });
     });
   });
 
-  test('Custom worker invocation', async () => {
+  test("invokeWorker", () => {
     expect.assertions(3);
 
-    const customProcessor = new FileProcessor(txtPattern, workerPath, {
+    const processor = new FileProcessor(pattern, workerPath, {
       invokeWorker(workers, filepath, callback) {
         workers(filepath, (err, result) =>
           err ? callback(err) : callback(null, `${result}!`)
@@ -127,13 +122,13 @@ describe('File Processing', () => {
     });
 
     const handler = jest.fn();
-    customProcessor.on('processed', handler);
+    processor.on("processed", handler);
 
-    await new Promise((resolve) => {
-      customProcessor.on('end', () => {
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'), 'A!');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('2.txt'), 'B!');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'), 'C!');
+    return new Promise((resolve) => {
+      processor.on("end", () => {
+        expect(handler).toHaveBeenCalledWith(examplePath("1.txt"), "A!");
+        expect(handler).toHaveBeenCalledWith(examplePath("2.txt"), "B!");
+        expect(handler).toHaveBeenCalledWith(examplePath("3.txt"), "C!");
         resolve();
       });
     });

@@ -1,0 +1,25 @@
+language: node_js
+node_js:
+  - "15"
+  - "14"
+  - "12"
+  - "10"
+script:
+  - yarn test --coverage
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
+jobs:
+  include:
+    - stage: test
+      node_js: lts/*
+      name: "Codestyle"
+      script:
+        - yarn lint
+      after_success: skip
+    - stage: release
+      node_js: lts/*
+      script: skip
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script: yarn release

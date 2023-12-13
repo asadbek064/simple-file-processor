@@ -11,5 +11,34 @@
   "dependencies": {
     "fast-glob": "^3.3.2",
     "worker-farm": "^1.7.0"
-  }
+  },
+  "devDependencies": {
+    "@researchgate/spire-config": "6.0.2",
+    "spire": "3.2.3",
+    "spire-plugin-semantic-release": "3.2.3"
+  },
+  "spire": {
+    "extends": [
+      [
+        "@researchgate/spire-config",
+        {
+          "eslint": "node",
+          "jest": "base"
+        }
+      ]
+    ],
+    "plugins": [
+      "spire-plugin-semantic-release"
+    ]
+  },
+  "jest": {
+    "preset": "@researchgate/jest-preset-base",
+    "testEnvironment": "node"
+  },
+  "engines": {
+    "node": ">= 10.18"
+  },
+  "files": [
+    "index.js"
+  ]
 }
