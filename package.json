@@ -1,5 +1,5 @@
 {
-  "name": "file-proccesor",
+  "name": "simple-file-proccesor",
   "version": "1.0.0",
   "description": "Run parallel tasks on a multiple files",
   "main": "index.js",
