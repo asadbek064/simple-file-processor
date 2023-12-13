@@ -131,9 +131,9 @@ describe('File Processing', () => {
 
     await new Promise((resolve) => {
       customProcessor.on('end', () => {
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'), 'a!');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('2.txt'), 'b!');
-        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'), 'c!');
+        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('1.txt'), 'A!');
+        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('2.txt'), 'B!');
+        expect(handler).toHaveBeenCalledWith(getFileAbsolutePath('3.txt'), 'C!');
         resolve();
       });
     });
