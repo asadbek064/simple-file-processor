@@ -1,0 +1,15 @@
+{
+  "name": "file-proccesor",
+  "version": "1.0.0",
+  "description": "Run parallel tasks on a multiple files",
+  "main": "index.js",
+  "scripts": {
+    "test": "spire test"
+  },
+  "author": "Asadbek Karimov",
+  "license": "MIT",
+  "dependencies": {
+    "fast-glob": "^3.3.2",
+    "worker-farm": "^1.7.0"
+  }
+}
